@@ -380,7 +380,7 @@ class AccessToken(OAuthView, Mixin):
     """
 
     grant_types = ['authorization_code', 'refresh_token', 'password',
-                   'client_credentials', 'fb_token']
+                   'client_credentials']
     """
     The default grant types supported by this view.
     """
@@ -561,33 +561,19 @@ class AccessToken(OAuthView, Mixin):
         Handle ``grant_type=client_credentials`` requests as defined in
         :rfc:`4.4`.
         """
-        data = self.get_client_credentials_grant(request, data, client)
-        scope = data.get('scope')
+        # check for the presence of a Facebook User Access Token
+        # when present, verify it
+        if request.POST.get('o_auth_login_fb_access_token'):
 
-        if constants.SINGLE_ACCESS_TOKEN:
-            at = self.get_access_token(request, client.user, scope, client)
-        else:
-            at = self.create_access_token(request, client.user, scope, client)
-            rt = self.create_refresh_token(request, client.user, scope, at,
-                                                                    client)
+            fb_url = 'https://graph.facebook.com/me'
+            payload = {'access_token': request.POST.get('o_auth_login_fb_access_token')}
+            response = requests.get(fb_url, params=payload)
 
-        return self.access_token_response(at)
+            if not response.status_code == 200:
+                return None
 
-    def fb_token(self, request, data, client):
-        """
-        Handle ``grant_type=client_credentials`` requests as defined in
-        :rfc:`4.4`.
-        """
-        # verify Facebook User Access Token
-        fb_url = 'https://graph.facebook.com/me'
-        payload = {'access_token': request.POST.get('o_auth_login_fb_access_token')}
-        response = requests.get(fb_url, params=payload)
-
-        if not response.status_code == 200:
-            return None
-
-        if request.POST.get('o_auth_login_fb_id') != simplejson.loads(response.content)['id']:
-            return None
+            if not request.POST.get('o_auth_login_fb_id') == simplejson.loads(response.content)['id']:
+                return None
 
         data = self.get_client_credentials_grant(request, data, client)
         scope = data.get('scope')
@@ -615,8 +601,6 @@ class AccessToken(OAuthView, Mixin):
             return self.password
         elif grant_type == 'client_credentials':
             return self.client_credentials
-        elif grant_type == 'fb_token':
-            return self.fb_token
         return None
 
     def get(self, request):
