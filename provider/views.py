@@ -9,7 +9,7 @@ from django.views.generic.base import TemplateView
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2.models import Client
 from . import constants, scope
-from .forms import ClientCredentialsGrantForm
+from .oauth2.forms import ClientCredentialsGrantForm
 
 
 class OAuthError(Exception):
