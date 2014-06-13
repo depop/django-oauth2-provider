@@ -386,6 +386,14 @@ class AccessToken(OAuthView, Mixin):
     The default grant types supported by this view.
     """
 
+    def get_client_credentials_grant(self, request, data, client):
+        """
+        Return the optional parameters (scope) associated with this request.
+
+        :return: ``tuple`` - ``(True or False, options)``
+        """
+        raise NotImplementedError
+
     def get_authorization_code_grant(self, request, data, client):
         """
         Return the grant associated with this request or an error dict.
