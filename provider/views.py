@@ -9,6 +9,7 @@ from django.views.generic.base import TemplateView
 from django.core.exceptions import ObjectDoesNotExist
 from oauth2.models import Client
 from . import constants, scope
+from .forms import ClientCredentialsGrantForm
 
 
 class OAuthError(Exception):
@@ -385,14 +386,6 @@ class AccessToken(OAuthView, Mixin):
     The default grant types supported by this view.
     """
 
-    def get_client_credentials_grant(self, request, data, client):
-        """
-        Return the optional parameters (scope) associated with this request.
-
-        :return: ``tuple`` - ``(True or False, options)``
-        """
-        raise NotImplementedError
-
     def get_authorization_code_grant(self, request, data, client):
         """
         Return the grant associated with this request or an error dict.
@@ -555,6 +548,11 @@ class AccessToken(OAuthView, Mixin):
 
         return self.access_token_response(at)
 
+    def get_client_credentials_grant(self, request, data, client):
+            form = ClientCredentialsGrantForm(data, client=client)
+            if not form.is_valid():
+                raise OAuthError(form.errors)
+            return form.cleaned_data
 
     def client_credentials(self, request, data, client):
         """
