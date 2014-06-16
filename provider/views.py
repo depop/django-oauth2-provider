@@ -386,14 +386,6 @@ class AccessToken(OAuthView, Mixin):
     The default grant types supported by this view.
     """
 
-    def get_client_credentials_grant(self, request, data, client):
-        """
-        Return the optional parameters (scope) associated with this request.
-
-        :return: ``tuple`` - ``(True or False, options)``
-        """
-        raise NotImplementedError
-
     def get_authorization_code_grant(self, request, data, client):
         """
         Return the grant associated with this request or an error dict.
@@ -489,6 +481,8 @@ class AccessToken(OAuthView, Mixin):
             'token_type': constants.TOKEN_TYPE,
             'expires_in': access_token.get_expire_delta(),
             'scope': ' '.join(scope.names(access_token.scope)),
+            'username': access_token.user.username,
+            'user_id': access_token.user.id,
         }
 
         # Not all access_tokens are given a refresh_token
