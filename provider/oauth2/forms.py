@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import get_model
 from django.contrib.auth import authenticate
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
@@ -7,7 +8,10 @@ from ..constants import RESPONSE_TYPE_CHOICES, SCOPES
 from ..forms import OAuthForm, OAuthValidationError
 from ..scope import SCOPE_NAMES
 from ..utils import now
-from .models import Client, Grant, RefreshToken
+
+Client = get_model('oauth2', 'Client')
+Grant = get_model('oauth2', 'Grant')
+RefreshToken = get_model('oauth2', 'RefreshToken')
 
 
 class ClientForm(forms.ModelForm):

@@ -1,6 +1,8 @@
+from django.db.models import get_model
 from ..utils import now
 from .forms import ClientAuthForm, PublicPasswordGrantForm
-from .models import AccessToken
+
+AccessToken = get_model('oauth2', 'AccessToken')
 
 
 class BaseBackend(object):

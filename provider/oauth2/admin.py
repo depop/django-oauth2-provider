@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import AccessToken, Grant, Client, RefreshToken
+from django.db.models import get_model
+
+
+Client = get_model('oauth2', 'Client')
+Grant = get_model('oauth2', 'Grant')
+RefreshToken = get_model('oauth2', 'RefreshToken')
+AccessToken = get_model('oauth2', 'AccessToken')
 
 
 class AccessTokenAdmin(admin.ModelAdmin):

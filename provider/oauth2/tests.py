@@ -1,6 +1,7 @@
 import json
 import urlparse
 import datetime
+from django.db.models import get_model
 from django.http import QueryDict
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -12,10 +13,13 @@ from ..compat import skipIfCustomUser
 from ..templatetags.scope import scopes
 from ..utils import now as date_now
 from .forms import ClientForm
-from .models import Client, Grant, AccessToken, RefreshToken
 from .backends import BasicClientBackend, RequestParamsClientBackend
 from .backends import AccessTokenBackend
 
+Client = get_model('oauth2', 'Client')
+Grant = get_model('oauth2', 'Grant')
+RefreshToken = get_model('oauth2', 'RefreshToken')
+AccessToken = get_model('oauth2', 'AccessToken')
 
 @skipIfCustomUser
 class BaseOAuth2TestCase(TestCase):
