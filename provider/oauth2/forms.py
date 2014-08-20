@@ -38,6 +38,7 @@ class ClientAuthForm(forms.Form):
 
     def clean(self):
         data = self.cleaned_data
+        Client = get_model('oauth2', 'Client')
         try:
             client = Client.objects.get(client_id=data.get('client_id'),
                 client_secret=data.get('client_secret'))
