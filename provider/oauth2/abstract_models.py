@@ -36,7 +36,7 @@ class AbstractClient(models.Model):
 
     Clients are outlined in the :rfc:`2` and its subsections.
     """
-    user = models.ForeignKey(AUTH_USER_MODEL, related_name='%(app_label)s_%(class)s_related',
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='%(app_label)s_%(class)s',
         blank=True, null=True)
     name = models.CharField(max_length=255, blank=True)
     url = models.URLField(help_text="Your application's URL.")
@@ -103,7 +103,7 @@ class AbstractGrant(models.Model):
     * :attr:`scope`
     """
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
-    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s_related')
+    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
     code = models.CharField(max_length=255, default=long_token)
     expires = models.DateTimeField(default=get_code_expiry)
     redirect_uri = models.CharField(max_length=255, blank=True)
@@ -139,7 +139,7 @@ class AbstractAccessToken(models.Model):
     """
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
     token = models.CharField(max_length=255, default=long_token, db_index=True)
-    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s_related')
+    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
     expires = models.DateTimeField()
     scope = models.IntegerField(default=constants.SCOPES[0][0],
             choices=constants.SCOPES)
@@ -194,8 +194,8 @@ class AbstractRefreshToken(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
     token = models.CharField(max_length=255, default=long_token)
     access_token = models.OneToOneField('oauth2.AccessToken',
-            related_name='%(app_label)s_%(class)s_related')
-    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s_related')
+            related_name='refresh_token')
+    client = models.ForeignKey('oauth2.Client', related_name='refresh_token')
     expired = models.BooleanField(default=False)
 
     def __unicode__(self):

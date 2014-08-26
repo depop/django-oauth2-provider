@@ -9,25 +9,26 @@ from .abstract_models import AbstractAccessToken
 from .abstract_models import AbstractRefreshToken
 
 
+
 class AccessToken(AbstractAccessToken):
 
     class Meta:
-        app_label = 'oauth2provider'
+        app_label = 'oauth2'
 
 
 class RefreshToken(AbstractRefreshToken):
 
     class Meta:
-        app_label = 'oauth2provider'
+        app_label = 'oauth2'
 
 
 class Client(AbstractClient):
 
     class Meta:
-        app_label = 'oauth2provider'
+        app_label = 'oauth2'
 
 
 class Grant(AbstractGrant):
 
     class Meta:
-        app_label = 'oauth2provider'
+        app_label = 'oauth2'

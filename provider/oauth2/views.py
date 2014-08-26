@@ -10,9 +10,12 @@ from .forms import PasswordGrantForm, RefreshTokenGrantForm
 from .forms import AuthorizationCodeGrantForm, ClientCredentialsGrantForm
 from .backends import BasicClientBackend, RequestParamsClientBackend, PublicPasswordBackend
 
+
 Client = get_model('oauth2', 'Client')
 Grant = get_model('oauth2', 'Grant')
 RefreshToken = get_model('oauth2', 'RefreshToken')
+AccessToken = get_model('oauth2', 'AccessToken')
+
 
 class Capture(Capture):
     """

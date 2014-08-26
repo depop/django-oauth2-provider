@@ -327,7 +327,7 @@ class PublicPasswordGrantForm(PasswordGrantForm):
 
     def clean(self):
         data = super(PublicPasswordGrantForm, self).clean()
-
+        Client = get_model('oauth2', 'Client')
         try:
             client = Client.objects.get(client_id=data.get('client_id'))
         except Client.DoesNotExist:

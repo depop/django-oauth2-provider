@@ -542,7 +542,6 @@ class AccessToken(OAuthView, Mixin):
         data = self.get_password_grant(request, data, client)
         user = data.get('user')
         scope = data.get('scope')
-
         if constants.SINGLE_ACCESS_TOKEN:
             at = self.get_access_token(request, user, scope, client)
         else:
