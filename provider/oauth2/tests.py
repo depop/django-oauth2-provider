@@ -387,6 +387,38 @@ class AccessTokenTest(BaseOAuth2TestCase):
         expires_in_days = round(expires_in / (60.0 * 60.0 * 24.0))
         self.assertEqual(expires_in_days, constants.EXPIRE_DELTA_PUBLIC.days)
 
+    def test_password_grant_public_with_json_request(self):
+        c = self.get_client()
+        c.client_type = 1 # public
+        c.save()
+
+        response = self.client.post(self.access_token_url(), data=json.dumps({
+            'grant_type': 'password',
+            'client_id': c.client_id,
+            # No secret needed
+            'username': self.get_user().username,
+            'password': self.get_password(),
+        }),
+        content_type='application/json')
+        self.assertEqual(200, response.status_code, response.content)
+        self.assertNotIn('refresh_token', json.loads(response.content))
+
+    def test_bad_json_on_request_body(self):
+        c = self.get_client()
+        c.client_type = 1 # public
+        c.save()
+        response = self.client.post(self.access_token_url(),{
+            'grant_type': 'password',
+            'client_id': c.client_id,
+            # No secret needed
+            'username': self.get_user().username,
+            'password': self.get_password(),
+        },
+        content_type='application/json')
+        self.assertEqual(400, response.status_code, response.content)
+        self.assertEqual('invalid_request', json.loads(response.content)['error'],
+            response.content)
+
     def test_password_grant_confidential(self):
         c = self.get_client()
         c.client_type = 0 # confidential

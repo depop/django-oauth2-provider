@@ -588,14 +588,16 @@ class AccessToken(OAuthView, Mixin):
 
     def get_data(self, request):
         mimetypes = {
-            'application/json': json.loads 
+            'application/json': json.loads
         }
         content_type = request.META.get('CONTENT_TYPE')
-        if content_type:
+        if content_type and content_type in mimetypes:
             try:
                 return mimetypes[content_type](request.raw_post_data)
-            except (TypeError, KeyError):
-                pass
+            except (TypeError, ValueError):
+                raise OAuthError({
+                        'error': 'invalid_request',
+                        'error_description': _('Invalid JSON found on request')})
         return request.POST
 
     def get(self, request):
@@ -616,14 +618,17 @@ class AccessToken(OAuthView, Mixin):
                 'error': 'invalid_request',
                 'error_description': _("A secure connection is required.")})
 
-        setattr(request, 'data', self.get_data(request))
+        try:
+            setattr(request, 'data', self.get_data(request))
+        except OAuthError, e:
+            return self.error_response(e.args[0])
 
         if not 'grant_type' in request.data:
             return self.error_response({
                 'error': 'invalid_request',
                 'error_description': _("No 'grant_type' included in the "
                     "request.")})
-    
+
         grant_type = request.data['grant_type']
 
         if grant_type not in self.grant_types:
@@ -633,7 +638,7 @@ class AccessToken(OAuthView, Mixin):
 
         if client is None:
             return self.error_response({'error': 'invalid_client'})
-        
+
         handler = self.get_handler(grant_type)
 
         try:
