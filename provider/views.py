@@ -590,7 +590,7 @@ class AccessToken(OAuthView, Mixin):
         mimetypes = {
             'application/json': json.loads
         }
-        content_type = request.META.get('CONTENT_TYPE')
+        content_type = request.META.get('CONTENT_TYPE', '').split(';')[0]
         if content_type and content_type in mimetypes:
             try:
                 return mimetypes[content_type](request.raw_post_data)
