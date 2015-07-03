@@ -10,8 +10,8 @@ setup(
     long_description=open('README.rst').read(),
     author='Alen Mujezinovic',
     author_email='alen@caffeinehit.com',
-    url = 'https://github.com/caffeinehit/django-oauth2-provider',
-    packages= find_packages(exclude=('tests*',)),
+    url='https://github.com/caffeinehit/django-oauth2-provider',
+    packages=find_packages(exclude=('tests*',)),
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -24,5 +24,6 @@ setup(
         "shortuuid>=0.3"
     ],
     include_package_data=True,
+    exclude_package_data={'': ['tests*']},
     zip_safe=False,
 )
