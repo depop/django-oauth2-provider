@@ -11,6 +11,13 @@ AccessToken = get_model('oauth2', 'AccessToken')
 class AccessTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'client', 'token', 'expires', 'scope',)
     raw_id_fields = ('user',)
+    search_fields = ('user', 'token',)
+
+
+class RefreshTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'client', 'token', 'access_token', 'expired',)
+    raw_id_fields = ('user',)
+    search_fields = ('user', 'access_token')
 
 
 class GrantAdmin(admin.ModelAdmin):
@@ -22,7 +29,8 @@ class ClientAdmin(admin.ModelAdmin):
     list_display = ('url', 'user', 'redirect_uri', 'client_id', 'client_type')
     raw_id_fields = ('user',)
 
+
 admin.site.register(AccessToken, AccessTokenAdmin)
 admin.site.register(Grant, GrantAdmin)
 admin.site.register(Client, ClientAdmin)
-admin.site.register(RefreshToken)
+admin.site.register(RefreshToken, RefreshTokenAdmin)

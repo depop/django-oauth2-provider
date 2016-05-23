@@ -1,10 +1,13 @@
 from datetime import timedelta
+
 from django.db.models import get_model
 from django.core.urlresolvers import reverse
+
 from .. import constants
 from ..views import Capture, Authorize, Redirect
 from ..views import AccessToken as AccessTokenView, OAuthError
 from ..utils import now
+
 from .forms import AuthorizationRequestForm, AuthorizationForm
 from .forms import PasswordGrantForm, RefreshTokenGrantForm
 from .forms import AuthorizationCodeGrantForm, ClientCredentialsGrantForm
