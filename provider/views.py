@@ -593,7 +593,7 @@ class AccessToken(OAuthView, Mixin):
         content_type = request.META.get('CONTENT_TYPE', '').split(';')[0]
         if content_type and content_type in mimetypes:
             try:
-                return mimetypes[content_type](request.raw_post_data)
+                return mimetypes[content_type](request.body)
             except (TypeError, ValueError):
                 raise OAuthError({
                         'error': 'invalid_request',
