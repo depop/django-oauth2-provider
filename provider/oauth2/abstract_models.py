@@ -4,12 +4,20 @@ implement these models with fields and and methods to be compatible with the
 views in :attr:`provider.views`.
 """
 
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 from .. import constants
 from ..constants import CLIENT_TYPES
-from ..utils import now, short_token, long_token, get_code_expiry
-from ..utils import get_token_expiry, serialize_instance, deserialize_instance
+from ..utils import (
+    deserialize_instance,
+    get_code_expiry,
+    get_token_expiry,
+    long_token,
+    now,
+    serialize_instance,
+    short_token,
+)
 from .managers import AccessTokenManager
 
 try:
@@ -36,8 +44,10 @@ class AbstractClient(models.Model):
 
     Clients are outlined in the :rfc:`2` and its subsections.
     """
-    user = models.ForeignKey(AUTH_USER_MODEL, related_name='%(app_label)s_%(class)s',
-        blank=True, null=True)
+
+    user = models.ForeignKey(
+        AUTH_USER_MODEL, related_name='%(app_label)s_%(class)s', blank=True, null=True
+    )
     name = models.CharField(max_length=255, blank=True)
     url = models.URLField(help_text="Your application's URL.")
     redirect_uri = models.URLField(help_text="Your application's callback URL")
@@ -49,17 +59,19 @@ class AbstractClient(models.Model):
         return self.redirect_uri
 
     def get_default_token_expiry(self):
-        public = (self.client_type == 1)
+        public = self.client_type == 1
         return get_token_expiry(public)
 
     def serialize(self):
-        return dict(user=serialize_instance(self.user),
-                    name=self.name,
-                    url=self.url,
-                    redirect_uri=self.redirect_uri,
-                    client_id=self.client_id,
-                    client_secret=self.client_secret,
-                    client_type=self.client_type)
+        return dict(
+            user=serialize_instance(self.user),
+            name=self.name,
+            url=self.url,
+            redirect_uri=self.redirect_uri,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            client_type=self.client_type,
+        )
 
     @classmethod
     def deserialize(cls, data):
@@ -102,6 +114,7 @@ class AbstractGrant(models.Model):
     * :attr:`redirect_uri`
     * :attr:`scope`
     """
+
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
     client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
     code = models.CharField(max_length=255, default=long_token)
@@ -137,12 +150,14 @@ class AbstractAccessToken(models.Model):
     * :meth:`get_expire_delta` - returns an integer representing seconds to
         expiry
     """
+
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
     token = models.CharField(max_length=255, default=long_token, db_index=True)
     client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
     expires = models.DateTimeField()
-    scope = models.IntegerField(default=constants.SCOPES[0][0],
-            choices=constants.SCOPES)
+    scope = models.IntegerField(
+        default=constants.SCOPES[0][0], choices=constants.SCOPES
+    )
 
     objects = AccessTokenManager()
 
@@ -171,7 +186,7 @@ class AbstractAccessToken(models.Model):
                 reference = timezone.make_aware(reference, timezone.utc)
 
         timedelta = expiration - reference
-        return timedelta.days*86400 + timedelta.seconds
+        return timedelta.days * 86400 + timedelta.seconds
 
     class Meta:
         abstract = True
@@ -191,10 +206,12 @@ class AbstractRefreshToken(models.Model):
     * :attr:`client` - :class:`Client`
     * :attr:`expired` - ``boolean``
     """
+
     user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
     token = models.CharField(max_length=255, default=long_token)
-    access_token = models.OneToOneField('oauth2.AccessToken',
-            related_name='refresh_token')
+    access_token = models.OneToOneField(
+        'oauth2.AccessToken', related_name='refresh_token'
+    )
     client = models.ForeignKey('oauth2.Client', related_name='refresh_token')
     expired = models.BooleanField(default=False)
 

@@ -1,5 +1,6 @@
-from ..utils import now
 from django.db import models
+
+from ..utils import now
 
 
 class AccessTokenManager(models.Manager):
