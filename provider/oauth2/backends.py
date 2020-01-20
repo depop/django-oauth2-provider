@@ -1,8 +1,9 @@
-from django.db.models import get_model
+from django.apps import apps
+
 from ..utils import now
 from .forms import ClientAuthForm, PublicPasswordGrantForm
 
-AccessToken = get_model('oauth2', 'AccessToken')
+AccessToken = apps.get_model('oauth2', 'AccessToken')
 
 
 class BaseBackend(object):
@@ -10,12 +11,12 @@ class BaseBackend(object):
     Base backend used to authenticate clients as defined in :rfc:`1` against
     our database.
     """
+
     def authenticate(self, request=None):
         """
         Override this method to implement your own authentication backend.
         Return a client or ``None`` in case of failure.
         """
-        pass
 
 
 class BasicClientBackend(object):
@@ -23,6 +24,7 @@ class BasicClientBackend(object):
     Backend that tries to authenticate a client through HTTP authorization
     headers as defined in :rfc:`2.3.1`.
     """
+
     def authenticate(self, request=None):
         auth = request.META.get('HTTP_AUTHORIZATION')
 
@@ -33,9 +35,9 @@ class BasicClientBackend(object):
             basic, base64 = auth.split(' ')
             client_id, client_secret = base64.decode('base64').split(':')
 
-            form = ClientAuthForm({
-                'client_id': client_id,
-                'client_secret': client_secret})
+            form = ClientAuthForm(
+                {'client_id': client_id, 'client_secret': client_secret}
+            )
 
             if form.is_valid():
                 return form.cleaned_data.get('client')
@@ -51,6 +53,7 @@ class RequestParamsClientBackend(object):
     Backend that tries to authenticate a client through request parameters
     which might be in the request body or URI as defined in :rfc:`2.3.1`.
     """
+
     def authenticate(self, request=None):
         if request is None:
             return None
@@ -100,7 +103,8 @@ class AccessTokenBackend(object):
 
     def authenticate(self, access_token=None, client=None):
         try:
-            return AccessToken.objects.get(token=access_token,
-                expires__gt=now(), client=client)
+            return AccessToken.objects.get(
+                token=access_token, expires__gt=now(), client=client
+            )
         except AccessToken.DoesNotExist:
             return None

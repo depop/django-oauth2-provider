@@ -1,12 +1,15 @@
 import json
 import urlparse
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect, QueryDict
+
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
-from django.core.exceptions import ObjectDoesNotExist
-from oauth2.models import Client
+
 from . import constants, scope
+
+Client = apps.get_model('oauth2', 'Client')
 
 
 class OAuthError(Exception):
@@ -49,6 +52,7 @@ class Mixin(object):
     Mixin providing common methods required in the OAuth view defined in
     :attr:`provider.views`.
     """
+
     def get_data(self, request, key='params'):
         """
         Return stored data from the session store.
@@ -101,6 +105,7 @@ class Capture(OAuthView, Mixin):
 
     The actual implementation is required to override :meth:`get_redirect_url`.
     """
+
     template_name = 'provider/authorize.html'
 
     def get_redirect_url(self, request):
@@ -117,10 +122,14 @@ class Capture(OAuthView, Mixin):
         self.cache_data(request, data)
 
         if constants.ENFORCE_SECURE and not request.is_secure():
-            return self.render_to_response({'error': 'access_denied',
-                'error_description': _("A secure connection is required."),
-                'next': None},
-                status=400)
+            return self.render_to_response(
+                {
+                    'error': 'access_denied',
+                    'error_description': _("A secure connection is required."),
+                    'next': None,
+                },
+                status=400,
+            )
 
         return HttpResponseRedirect(self.get_redirect_url(request))
 
@@ -152,6 +161,7 @@ class Authorize(OAuthView, Mixin):
     user with a modified redirect URL to the callback including the error
     and possibly description of the error as defined in :rfc:`4.1.2.1`.
     """
+
     template_name = 'provider/authorize.html'
 
     def get_redirect_url(self, request):
@@ -206,11 +216,14 @@ class Authorize(OAuthView, Mixin):
         client = self.get_client(data.get('client_id'))
 
         if client is None:
-            raise OAuthError({
-                'error': 'unauthorized_client',
-                'error_description': _("An unauthorized client tried to access"
-                    " your resources.")
-            })
+            raise OAuthError(
+                {
+                    'error': 'unauthorized_client',
+                    'error_description': _(
+                        "An unauthorized client tried to access" " your resources."
+                    ),
+                }
+            )
 
         form = self.get_request_form(client, data)
 
@@ -249,26 +262,29 @@ class Authorize(OAuthView, Mixin):
         data = self.get_data(request)
 
         if data is None:
-            return self.error_response(request, {
-                'error': 'expired_authorization',
-                'error_description': _('Authorization session has expired.')})
+            return self.error_response(
+                request,
+                {
+                    'error': 'expired_authorization',
+                    'error_description': _('Authorization session has expired.'),
+                },
+            )
 
         try:
             client, data = self._validate_client(request, data)
         except OAuthError, e:
             return self.error_response(request, e.args[0], status=400)
 
-        authorization_form = self.get_authorization_form(request, client,
-            post_data, data)
+        authorization_form = self.get_authorization_form(
+            request, client, post_data, data
+        )
 
         if not authorization_form.is_bound or not authorization_form.is_valid():
-            return self.render_to_response({
-                'client': client,
-                'form': authorization_form,
-                'oauth_data': data, })
+            return self.render_to_response(
+                {'client': client, 'form': authorization_form, 'oauth_data': data}
+            )
 
-        code = self.save_authorization(request, client,
-            authorization_form, data)
+        code = self.save_authorization(request, client, authorization_form, data)
 
         # be sure to serialize any objects that aren't natively json
         # serializable because these values are stored as session data
@@ -292,14 +308,12 @@ class Redirect(OAuthView, Mixin):
     an error.
     """
 
-    def error_response(self, error, content_type='application/json', status=400,
-            **kwargs):
+    def error_response(self, error, content_type='application/json', status=400, **kwargs):
         """
         Return an error response to the client with default status code of
         *400* stating the error as outlined in :rfc:`5.2`.
         """
-        return HttpResponse(json.dumps(error), content_type=content_type,
-                status=status, **kwargs)
+        return HttpResponse(json.dumps(error), content_type=content_type, status=status, **kwargs)
 
     def get(self, request):
         data = self.get_data(request)
@@ -314,9 +328,12 @@ class Redirect(OAuthView, Mixin):
         # it should only happen if this view is called manually, out of the
         # normal capture-authorize-redirect flow.
         if data is None or client is None:
-            return self.error_response({
-                'error': 'invalid_data',
-                'error_description': _('Data has not been captured')})
+            return self.error_response(
+                {
+                    'error': 'invalid_data',
+                    'error_description': _('Data has not been captured'),
+                }
+            )
 
         redirect_uri = data.get('redirect_uri', None) or client.redirect_uri
 
@@ -377,8 +394,12 @@ class AccessToken(OAuthView, Mixin):
     Authentication backends used to authenticate a particular client.
     """
 
-    grant_types = ['authorization_code', 'refresh_token', 'password',
-                   'client_credentials']
+    grant_types = [
+        'authorization_code',
+        'refresh_token',
+        'password',
+        'client_credentials',
+    ]
     """
     The default grant types supported by this view.
     """
@@ -466,14 +487,12 @@ class AccessToken(OAuthView, Mixin):
         """
         raise NotImplementedError
 
-    def error_response(self, error, content_type='application/json', status=400,
-            **kwargs):
+    def error_response(self, error, content_type='application/json', status=400, **kwargs):
         """
         Return an error response to the client with default status code of
         *400* stating the error as outlined in :rfc:`5.2`.
         """
-        return HttpResponse(json.dumps(error), content_type=content_type,
-                status=status, **kwargs)
+        return HttpResponse(json.dumps(error), content_type=content_type, status=status, **kwargs)
 
     def access_token_response(self, access_token):
         """
@@ -496,23 +515,19 @@ class AccessToken(OAuthView, Mixin):
         except ObjectDoesNotExist:
             pass
 
-        return HttpResponse(
-            json.dumps(response_data), content_type='application/json'
-        )
+        return HttpResponse(json.dumps(response_data), content_type='application/json')
 
     def authorization_code(self, request, data, client):
         """
         Handle ``grant_type=authorization_code`` requests as defined in
         :rfc:`4.1.3`.
         """
-        grant = self.get_authorization_code_grant(request, request.POST,
-                client)
+        grant = self.get_authorization_code_grant(request, request.POST, client)
         if constants.SINGLE_ACCESS_TOKEN:
             at = self.get_access_token(request, grant.user, grant.scope, client)
         else:
             at = self.create_access_token(request, grant.user, grant.scope, client)
-            rt = self.create_refresh_token(request, grant.user, grant.scope, at,
-                    client)
+            self.create_refresh_token(request, grant.user, grant.scope, at, client)
 
         self.invalidate_grant(grant)
 
@@ -528,8 +543,7 @@ class AccessToken(OAuthView, Mixin):
         self.invalidate_refresh_token(rt)
         self.invalidate_access_token(rt.access_token)
 
-        at = self.create_access_token(request, rt.user, rt.access_token.scope,
-                client)
+        at = self.create_access_token(request, rt.user, rt.access_token.scope, client)
         rt = self.create_refresh_token(request, at.user, at.scope, at, client)
 
         return self.access_token_response(at)
@@ -548,10 +562,9 @@ class AccessToken(OAuthView, Mixin):
             at = self.create_access_token(request, user, scope, client)
             # Public clients don't get refresh tokens
             if client.client_type != 1:
-                rt = self.create_refresh_token(request, user, scope, at, client)
+                self.create_refresh_token(request, user, scope, at, client)
 
         return self.access_token_response(at)
-
 
     def client_credentials(self, request, data, client):
         """
@@ -565,8 +578,7 @@ class AccessToken(OAuthView, Mixin):
             at = self.get_access_token(request, client.user, scope, client)
         else:
             at = self.create_access_token(request, client.user, scope, client)
-            rt = self.create_refresh_token(request, client.user, scope, at,
-                                                                    client)
+            self.create_refresh_token(request, client.user, scope, at, client)
 
         return self.access_token_response(at)
 
@@ -587,17 +599,18 @@ class AccessToken(OAuthView, Mixin):
         return None
 
     def get_data(self, request):
-        mimetypes = {
-            'application/json': json.loads
-        }
+        mimetypes = {'application/json': json.loads}
         content_type = request.META.get('CONTENT_TYPE', '').split(';')[0]
         if content_type and content_type in mimetypes:
             try:
                 return mimetypes[content_type](request.body)
             except (TypeError, ValueError):
-                raise OAuthError({
+                raise OAuthError(
+                    {
                         'error': 'invalid_request',
-                        'error_description': _('Invalid JSON found on request')})
+                        'error_description': _('Invalid JSON found on request'),
+                    }
+                )
         return request.POST
 
     def get(self, request):
@@ -605,29 +618,39 @@ class AccessToken(OAuthView, Mixin):
         As per :rfc:`3.2` the token endpoint *only* supports POST requests.
         Returns an error response.
         """
-        return self.error_response({
-            'error': 'invalid_request',
-            'error_description': _("Only POST requests allowed.")})
+        return self.error_response(
+            {
+                'error': 'invalid_request',
+                'error_description': _("Only POST requests allowed."),
+            }
+        )
 
     def post(self, request):
         """
         As per :rfc:`3.2` the token endpoint *only* supports POST requests.
         """
         if constants.ENFORCE_SECURE and not request.is_secure():
-            return self.error_response({
-                'error': 'invalid_request',
-                'error_description': _("A secure connection is required.")})
+            return self.error_response(
+                {
+                    'error': 'invalid_request',
+                    'error_description': _("A secure connection is required."),
+                }
+            )
 
         try:
             setattr(request, 'data', self.get_data(request))
         except OAuthError, e:
             return self.error_response(e.args[0])
 
-        if not 'grant_type' in request.data:
-            return self.error_response({
-                'error': 'invalid_request',
-                'error_description': _("No 'grant_type' included in the "
-                    "request.")})
+        if 'grant_type' not in request.data:
+            return self.error_response(
+                {
+                    'error': 'invalid_request',
+                    'error_description': _(
+                        "No 'grant_type' included in the " "request."
+                    ),
+                }
+            )
 
         grant_type = request.data['grant_type']
 

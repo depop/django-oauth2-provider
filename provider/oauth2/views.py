@@ -1,26 +1,28 @@
 from datetime import timedelta
-from django.db.models import get_model
+
+from django.apps import apps
 from django.core.urlresolvers import reverse
+
 from .. import constants
-from ..views import Capture, Authorize, Redirect
-from ..views import AccessToken as AccessTokenView, OAuthError
 from ..utils import now
-from .forms import AuthorizationRequestForm, AuthorizationForm
-from .forms import PasswordGrantForm, RefreshTokenGrantForm
-from .forms import AuthorizationCodeGrantForm, ClientCredentialsGrantForm
-from .backends import BasicClientBackend, RequestParamsClientBackend, PublicPasswordBackend
+from ..views import AccessToken as AccessTokenView
+from ..views import Authorize, Capture, OAuthError, Redirect
+from .backends import (BasicClientBackend, PublicPasswordBackend,
+                       RequestParamsClientBackend)
+from .forms import (AuthorizationCodeGrantForm, AuthorizationForm,
+                    AuthorizationRequestForm, ClientCredentialsGrantForm,
+                    PasswordGrantForm, RefreshTokenGrantForm)
 
-
-Client = get_model('oauth2', 'Client')
-Grant = get_model('oauth2', 'Grant')
-RefreshToken = get_model('oauth2', 'RefreshToken')
-AccessToken = get_model('oauth2', 'AccessToken')
+AccessToken = apps.get_model('oauth2', 'AccessToken')
+Client = apps.get_model('oauth2', 'Client')
+RefreshToken = apps.get_model('oauth2', 'RefreshToken')
 
 
 class Capture(Capture):
     """
     Implementation of :class:`provider.views.Capture`.
     """
+
     def get_redirect_url(self, request):
         return reverse('oauth2:authorize')
 
@@ -29,6 +31,7 @@ class Authorize(Authorize):
     """
     Implementation of :class:`provider.views.Authorize`.
     """
+
     def get_request_form(self, client, data):
         return AuthorizationRequestForm(data, client=client)
 
@@ -62,7 +65,6 @@ class Redirect(Redirect):
     """
     Implementation of :class:`provider.views.Redirect`
     """
-    pass
 
 
 class AccessTokenView(AccessTokenView):
@@ -74,6 +76,7 @@ class AccessTokenView(AccessTokenView):
         wish to disable any, you can override the :meth:`get_handler` method
         *or* the :attr:`grant_types` list.
     """
+
     authentication = (
         BasicClientBackend,
         RequestParamsClientBackend,
@@ -107,8 +110,9 @@ class AccessTokenView(AccessTokenView):
     def get_access_token(self, request, user, scope, client):
         try:
             # Attempt to fetch an existing access token.
-            at = AccessToken.objects.get(user=user, client=client,
-                                         scope=scope, expires__gt=now())
+            at = AccessToken.objects.get(
+                user=user, client=client, scope=scope, expires__gt=now()
+            )
         except AccessToken.DoesNotExist:
             # None found... make a new one!
             at = self.create_access_token(request, user, scope, client)
@@ -116,17 +120,11 @@ class AccessTokenView(AccessTokenView):
         return at
 
     def create_access_token(self, request, user, scope, client):
-        return AccessToken.objects.create(
-            user=user,
-            client=client,
-            scope=scope
-        )
+        return AccessToken.objects.create(user=user, client=client, scope=scope)
 
     def create_refresh_token(self, request, user, scope, access_token, client):
         return RefreshToken.objects.create(
-            user=user,
-            access_token=access_token,
-            client=client
+            user=user, access_token=access_token, client=client
         )
 
     def invalidate_grant(self, grant):

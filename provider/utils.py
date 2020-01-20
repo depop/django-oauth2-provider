@@ -1,23 +1,25 @@
 import hashlib
-import shortuuid
-from datetime import datetime, tzinfo
-from django.conf import settings
-from django.utils import dateparse
-from django.db.models.fields import (DateTimeField, DateField,
-                                     EmailField, TimeField,
-                                     FieldDoesNotExist)
-from django.core.serializers.json import DjangoJSONEncoder
-from .constants import EXPIRE_DELTA, EXPIRE_DELTA_PUBLIC, EXPIRE_CODE_DELTA
+import json
+from datetime import datetime
 
-try:
-    import json
-except ImporError:
-    import simplejson as json
+import shortuuid
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models.fields import (
+    DateField,
+    DateTimeField,
+    FieldDoesNotExist,
+    TimeField,
+)
+from django.utils import dateparse
+
+from .constants import EXPIRE_CODE_DELTA, EXPIRE_DELTA, EXPIRE_DELTA_PUBLIC
 
 try:
     from django.utils import timezone
 except ImportError:
     timezone = None
+
 
 def now():
     if timezone:
@@ -75,9 +77,7 @@ def serialize_instance(instance):
     Django serialization, as these are models are not "complete" yet.
     Serialization will start complaining about missing relations et al.
     """
-    ret = dict([(k, v)
-                for k, v in instance.__dict__.items()
-                if not k.startswith('_')])
+    ret = dict([(k, v) for k, v in instance.__dict__.items() if not k.startswith('_')])
     return json.loads(json.dumps(ret, cls=DjangoJSONEncoder))
 
 
