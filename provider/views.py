@@ -292,13 +292,13 @@ class Redirect(OAuthView, Mixin):
     an error.
     """
 
-    def error_response(self, error, mimetype='application/json', status=400,
+    def error_response(self, error, content_type='application/json', status=400,
             **kwargs):
         """
         Return an error response to the client with default status code of
         *400* stating the error as outlined in :rfc:`5.2`.
         """
-        return HttpResponse(json.dumps(error), mimetype=mimetype,
+        return HttpResponse(json.dumps(error), content_type=content_type,
                 status=status, **kwargs)
 
     def get(self, request):
@@ -466,13 +466,13 @@ class AccessToken(OAuthView, Mixin):
         """
         raise NotImplementedError
 
-    def error_response(self, error, mimetype='application/json', status=400,
+    def error_response(self, error, content_type='application/json', status=400,
             **kwargs):
         """
         Return an error response to the client with default status code of
         *400* stating the error as outlined in :rfc:`5.2`.
         """
-        return HttpResponse(json.dumps(error), mimetype=mimetype,
+        return HttpResponse(json.dumps(error), content_type=content_type,
                 status=status, **kwargs)
 
     def access_token_response(self, access_token):
@@ -497,7 +497,7 @@ class AccessToken(OAuthView, Mixin):
             pass
 
         return HttpResponse(
-            json.dumps(response_data), mimetype='application/json'
+            json.dumps(response_data), content_type='application/json'
         )
 
     def authorization_code(self, request, data, client):
@@ -593,7 +593,7 @@ class AccessToken(OAuthView, Mixin):
         content_type = request.META.get('CONTENT_TYPE', '').split(';')[0]
         if content_type and content_type in mimetypes:
             try:
-                return mimetypes[content_type](request.raw_post_data)
+                return mimetypes[content_type](request.body)
             except (TypeError, ValueError):
                 raise OAuthError({
                         'error': 'invalid_request',
