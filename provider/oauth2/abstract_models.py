@@ -25,7 +25,7 @@ try:
 except ImportError:
     timezone = None
 
-AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "auth.User")
 
 
 class AbstractClient(models.Model):
@@ -46,7 +46,11 @@ class AbstractClient(models.Model):
     """
 
     user = models.ForeignKey(
-        AUTH_USER_MODEL, related_name='%(app_label)s_%(class)s', blank=True, null=True
+        AUTH_USER_MODEL,
+        related_name="%(app_label)s_%(class)s",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=255, blank=True)
     url = models.URLField(help_text="Your application's URL.")
@@ -95,7 +99,7 @@ class AbstractClient(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'oauth2'
+        app_label = "oauth2"
 
 
 class AbstractGrant(models.Model):
@@ -115,8 +119,14 @@ class AbstractGrant(models.Model):
     * :attr:`scope`
     """
 
-    user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
-    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
+    user = models.ForeignKey(
+        AUTH_USER_MODEL, default=None, null=True, on_delete=models.CASCADE
+    )
+    client = models.ForeignKey(
+        "oauth2.Client",
+        related_name="%(app_label)s_%(class)s",
+        on_delete=models.CASCADE,
+    )
     code = models.CharField(max_length=255, default=long_token)
     expires = models.DateTimeField(default=get_code_expiry)
     redirect_uri = models.CharField(max_length=255, blank=True)
@@ -127,7 +137,7 @@ class AbstractGrant(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'oauth2'
+        app_label = "oauth2"
 
 
 class AbstractAccessToken(models.Model):
@@ -151,9 +161,15 @@ class AbstractAccessToken(models.Model):
         expiry
     """
 
-    user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
+    user = models.ForeignKey(
+        AUTH_USER_MODEL, default=None, null=True, on_delete=models.CASCADE
+    )
     token = models.CharField(max_length=255, default=long_token, db_index=True)
-    client = models.ForeignKey('oauth2.Client', related_name='%(app_label)s_%(class)s')
+    client = models.ForeignKey(
+        "oauth2.Client",
+        related_name="%(app_label)s_%(class)s",
+        on_delete=models.CASCADE,
+    )
     expires = models.DateTimeField()
     scope = models.IntegerField(
         default=constants.SCOPES[0][0], choices=constants.SCOPES
@@ -190,7 +206,7 @@ class AbstractAccessToken(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'oauth2'
+        app_label = "oauth2"
 
 
 class AbstractRefreshToken(models.Model):
@@ -207,12 +223,16 @@ class AbstractRefreshToken(models.Model):
     * :attr:`expired` - ``boolean``
     """
 
-    user = models.ForeignKey(AUTH_USER_MODEL, default=None, null=True)
+    user = models.ForeignKey(
+        AUTH_USER_MODEL, default=None, null=True, on_delete=models.CASCADE
+    )
     token = models.CharField(max_length=255, default=long_token)
     access_token = models.OneToOneField(
-        'oauth2.AccessToken', related_name='refresh_token'
+        "oauth2.AccessToken", related_name="refresh_token", on_delete=models.CASCADE
     )
-    client = models.ForeignKey('oauth2.Client', related_name='refresh_token')
+    client = models.ForeignKey(
+        "oauth2.Client", related_name="refresh_token", on_delete=models.CASCADE
+    )
     expired = models.BooleanField(default=False)
 
     def __unicode__(self):
@@ -220,4 +240,4 @@ class AbstractRefreshToken(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'oauth2'
+        app_label = "oauth2"
