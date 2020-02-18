@@ -52,7 +52,7 @@ class OAuthForm(forms.Form):
         """
         try:
             super(OAuthForm, self)._clean_fields()
-        except OAuthValidationError, e:
+        except OAuthValidationError as e:
             self._errors.update(e.args[0])
 
     def _clean_form(self):
@@ -61,5 +61,5 @@ class OAuthForm(forms.Form):
         """
         try:
             super(OAuthForm, self)._clean_form()
-        except OAuthValidationError, e:
+        except OAuthValidationError as e:
             self._errors.update(e.args[0])

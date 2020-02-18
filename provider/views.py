@@ -1,5 +1,5 @@
 import json
-import urlparse
+import urllib.parse
 
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -272,7 +272,7 @@ class Authorize(OAuthView, Mixin):
 
         try:
             client, data = self._validate_client(request, data)
-        except OAuthError, e:
+        except OAuthError as e:
             return self.error_response(request, e.args[0], status=400)
 
         authorization_form = self.get_authorization_form(
@@ -337,7 +337,7 @@ class Redirect(OAuthView, Mixin):
 
         redirect_uri = data.get('redirect_uri', None) or client.redirect_uri
 
-        parsed = urlparse.urlparse(redirect_uri)
+        parsed = urllib.parse.urlparse(redirect_uri)
 
         query = QueryDict('', mutable=True)
 
@@ -353,7 +353,7 @@ class Redirect(OAuthView, Mixin):
 
         parsed = parsed[:4] + (query.urlencode(), '')
 
-        redirect_uri = urlparse.ParseResult(*parsed).geturl()
+        redirect_uri = urllib.parse.ParseResult(*parsed).geturl()
 
         self.clear_data(request)
 
@@ -639,7 +639,7 @@ class AccessToken(OAuthView, Mixin):
 
         try:
             setattr(request, 'data', self.get_data(request))
-        except OAuthError, e:
+        except OAuthError as e:
             return self.error_response(e.args[0])
 
         if 'grant_type' not in request.data:
@@ -666,5 +666,5 @@ class AccessToken(OAuthView, Mixin):
 
         try:
             return handler(request, request.data, client)
-        except OAuthError, e:
+        except OAuthError as e:
             return self.error_response(e.args[0])

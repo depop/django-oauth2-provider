@@ -8,6 +8,8 @@ Scopes can be combined, such as ``"read write"``. Note that a single
 See :class:`provider.scope.to_int` on how scopes are combined.
 """
 
+import functools
+
 from .constants import SCOPES
 
 SCOPE_NAMES = [(name, name) for (value, name) in SCOPES]
@@ -72,7 +74,7 @@ def to_names(scope):
 
     """
     return [
-        name for (name, value) in SCOPE_NAME_DICT.iteritems() if check(value, scope)
+        name for (name, value) in SCOPE_NAME_DICT.items() if check(value, scope)
     ]
 
 
@@ -99,7 +101,7 @@ def to_int(*names, **kwargs):
 
     """
 
-    return reduce(
+    return functools.reduce(
         lambda prev, next: (prev | SCOPE_NAME_DICT.get(next, 0)),
         names,
         kwargs.pop('default', 0),
