@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.apps import apps
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .. import constants
 from ..utils import now
