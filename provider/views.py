@@ -4,7 +4,7 @@ import urllib.parse
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
 
 from . import constants, scope
